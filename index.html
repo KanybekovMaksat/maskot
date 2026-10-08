@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AiCo 2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Значения из codify-app-web/design/tokens.css */
+:root {
+  --p-blue-50: oklch(0.975 0.011 264.5); --p-blue-100: oklch(0.945 0.026 266.6); --p-blue-300: oklch(0.825 0.087 268.6);
+  --p-blue-400: oklch(0.734 0.137 269.0); --p-blue-700: oklch(0.470 0.216 268.9); --p-blue-800: oklch(0.390 0.182 268.8);
+  --p-blue-900: oklch(0.315 0.155 268.7); --p-blue-950: oklch(0.236 0.125 268.8);
+  --p-lime-300: oklch(0.848 0.179 118.2); --p-lime-400: oklch(0.736 0.157 118.1); --p-lime-700: oklch(0.469 0.109 117.7);
+  --p-n-50: oklch(0.985 0.007 268.5); --p-n-100: oklch(0.964 0.012 271.3); --p-n-200: oklch(0.919 0.013 271.3);
+  --p-n-400: oklch(0.751 0.012 269.5); --p-n-500: oklch(0.643 0.012 269.5); --p-n-600: oklch(0.555 0.011 267.3);
+  --p-n-700: oklch(0.471 0.012 267.3); --p-n-800: oklch(0.330 0.013 273.0); --p-n-900: oklch(0.261 0.012 270.9);
+  --p-n-950: oklch(0.191 0.011 268.1);
+
+  --page: var(--p-n-50); --surface: oklch(1 0 0); --inset: var(--p-n-100); --line: var(--p-n-200); --line-strong: var(--p-n-600);
+  --ink: var(--p-n-950); --ink-soft: var(--p-n-700); --action: var(--p-blue-700); --action-soft: var(--p-blue-100);
+  --on-action: oklch(1 0 0); --progress: var(--p-lime-300); --on-progress: var(--p-blue-950); --progress-ink: var(--p-lime-700);
+  --focus: var(--p-blue-700);
+  --shadow-raised: 0 1px 2px oklch(0 0 0 / 0.06), 0 12px 24px -12px oklch(0 0 0 / 0.25);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  font-size: 106.25%;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --page: var(--p-n-950); --surface: var(--p-n-900); --inset: var(--p-n-950); --line: var(--p-n-800); --line-strong: var(--p-n-500);
+  --ink: var(--p-n-100); --ink-soft: var(--p-n-400); --action: var(--p-blue-400); --action-soft: var(--p-blue-900);
+  --on-action: var(--p-blue-950); --progress-ink: var(--p-lime-300); --focus: var(--p-lime-400);
+  --shadow-raised: 0 1px 2px oklch(0 0 0 / 0.4), 0 12px 24px -12px oklch(0 0 0 / 0.7);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: Inter, "Inter Variable", system-ui, sans-serif; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 96px; }
+h1, h2, h3 { line-height: 1.25; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.7647rem; font-weight: 700; }
+h2 { font-size: 1.4118rem; font-weight: 700; }
+h3 { font-size: 1.1765rem; font-weight: 700; }
+p { margin: 0; text-wrap: pretty; }
+.soft { color: var(--ink-soft); }
+.small { font-size: 0.8235rem; line-height: 1.4; }
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 32px; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.brand-dot { width: 12px; height: 12px; border-radius: 4px; background: var(--progress); }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; margin-bottom: 64px; }
+.hero-copy { display: grid; gap: 16px; }
+.hero-copy h1 { font-size: 2.6rem; letter-spacing: -0.02em; }
+.kicker { font-size: 0.8235rem; font-weight: 600; color: var(--progress-ink); text-transform: uppercase; letter-spacing: 0.06em; }
+.traits { display: grid; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.traits li { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: start; }
+.traits b { font-family: "JetBrains Mono", monospace; color: var(--action); font-weight: 600; text-align: center; }
+
+.stage { position: relative; background: var(--inset); border-radius: 16px; padding: 24px; display: grid; justify-items: center; gap: 16px; }
+.host { width: min(100%, 280px); aspect-ratio: 1; position: relative; }
+.host.big { width: min(100%, 340px); }
+.aico { display: block; width: 100%; height: 100%; overflow: visible; touch-action: none; }
+.aico .tile-shadow { filter: drop-shadow(0 18px 24px oklch(0.236 0.125 268.8 / 0.35)); }
+.typing circle { opacity: 0; transition: opacity 200ms; }
+.typing.on circle { animation: typing 1.1s infinite var(--ease-out); }
+.typing.on circle:nth-child(2) { animation-delay: 0.15s; }
+.typing.on circle:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typing { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.face { transition: color 200ms; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 0.8235rem; font-weight: 600; cursor: pointer; transition: background 120ms, border-color 120ms, transform 120ms; }
+.chip:hover { border-color: var(--line-strong); }
+.chip:active { transform: scale(0.96); }
+.chip[aria-pressed="true"] { background: var(--action); border-color: var(--action); color: var(--on-action); }
+.chip .g { font-family: "JetBrains Mono", monospace; margin-right: 6px; opacity: 0.7; }
+.btn { border: 0; border-radius: 12px; padding: 10px 16px; font-weight: 600; cursor: pointer; background: var(--progress); color: var(--on-progress); transition: transform 120ms, filter 120ms; }
+.btn:hover { filter: brightness(1.04); }
+.btn:active { transform: scale(0.97); }
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
+.meter { width: 100%; max-width: 280px; display: grid; gap: 4px; }
+.meter input { width: 100%; accent-color: var(--p-lime-400); }
+
+section { margin-top: 72px; }
+.section-head { display: grid; gap: 8px; margin-bottom: 24px; max-width: 60ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
+
+.problems { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: center; }
+.problems ol { margin: 0; padding-left: 20px; display: grid; gap: 12px; }
+
+.ideas { display: grid; gap: 24px; }
+.idea { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 24px; align-items: start; }
+.idea-copy { display: grid; gap: 12px; padding-top: 8px; }
+.idea-num { font-family: "JetBrains Mono", monospace; font-weight: 600; color: var(--progress-ink); }
+.idea-copy dl { margin: 4px 0 0; display: grid; gap: 10px; }
+.idea-copy dt { font-size: 0.8235rem; font-weight: 600; color: var(--ink-soft); }
+.idea-copy dd { margin: 0; }
+.hint { font-size: 0.8235rem; color: var(--ink-soft); text-align: center; }
+
+.alphabet { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; width: 100%; }
+.alphabet figure { margin: 0; display: grid; gap: 4px; justify-items: center; font-size: 0.8235rem; }
+.alphabet .host { width: 56px; }
+
+.quiz { width: 100%; display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; }
+.quiz .host { width: 150px; }
+.quiz-card { background: var(--surface); border-radius: 12px; padding: 16px; display: grid; gap: 12px; }
+.quiz pre { margin: 0; font-family: "JetBrains Mono", monospace; font-size: 0.8235rem; background: var(--inset); border-radius: 8px; padding: 8px 12px; }
+.answers { display: flex; gap: 8px; }
+.answers button { flex: 1; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 0; font-weight: 700; cursor: pointer; transition: background 200ms, border-color 200ms; }
+.answers button.right { background: var(--progress); color: var(--on-progress); border-color: var(--progress); }
+.answers button.wrong { border-color: oklch(0.645 0.191 24.9); }
+.buddy { position: absolute; left: 0; top: 0; width: 20px; height: 20px; border-radius: 28%; background: var(--p-lime-300); transform-origin: 50% 100%; pointer-events: none; box-shadow: 0 4px 8px -2px oklch(0.236 0.125 268.8 / 0.35), inset 0 -3px 0 oklch(0.645 0.150 118.2 / 0.6); z-index: 3; }
+
+.gl { width: min(100%, 340px); aspect-ratio: 1; border-radius: 22%; display: block; cursor: pointer; box-shadow: 0 18px 32px -16px oklch(0.236 0.125 268.8 / 0.6); }
+.gl-fallback { display: none; text-align: center; }
+
+.track { width: 100%; display: grid; gap: 8px; }
+.lane { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); height: 120px; }
+.cell { border-bottom: 3px dashed var(--line); position: relative; }
+.cell.goal::after { content: ""; position: absolute; left: 50%; bottom: 10px; width: 30px; height: 30px; transform: translateX(-50%); background: var(--p-lime-400); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.walker { position: absolute; left: 0; bottom: 0; width: 20%; display: grid; justify-items: center; transition: transform 460ms cubic-bezier(0.3, 1.45, 0.5, 1); z-index: 2; }
+.walker .host { width: 96px; }
+.prog { display: grid; gap: 12px; width: 100%; }
+.code { font-family: "JetBrains Mono", monospace; font-size: 0.8235rem; background: var(--surface); border-radius: 12px; padding: 8px; min-height: 120px; display: grid; align-content: start; gap: 2px; }
+.code .ln { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; transition: background 120ms; }
+.code .ln.on { background: var(--progress); color: var(--on-progress); }
+.code .ln button { border: 0; background: none; color: var(--ink-soft); cursor: pointer; padding: 0 4px; }
+.code .empty { color: var(--ink-soft); padding: 4px 8px; }
+.cmds .chip { font-family: "JetBrains Mono", monospace; font-weight: 400; }
+.status { min-height: 1.4em; font-size: 0.8235rem; font-weight: 600; color: var(--progress-ink); text-align: center; }
+
+.sizes { overflow-x: auto; }
+.sizes table { border-collapse: collapse; width: 100%; min-width: 560px; }
+.sizes td, .sizes th { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.sizes th { font-size: 0.8235rem; color: var(--ink-soft); font-weight: 600; }
+.sizes .mini { display: inline-block; vertical-align: middle; }
+
+.compare { overflow-x: auto; }
+.compare table { border-collapse: collapse; width: 100%; min-width: 640px; }
+.compare th, .compare td { text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
+.compare thead th { font-size: 0.8235rem; color: var(--ink-soft); }
+.compare td:last-child { background: color-mix(in oklch, var(--progress) 18%, transparent); }
+
+.plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.plan .card { display: grid; gap: 8px; align-content: start; }
+.tag { display: inline-block; font-size: 0.8235rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--action-soft); color: var(--action); justify-self: start; }
+.tag.lime { background: var(--progress); color: var(--on-progress); }
+.sources { margin-top: 48px; font-size: 0.8235rem; color: var(--ink-soft); }
+.sources a { color: inherit; }
+
+@media (max-width: 800px) {
+  .hero, .idea, .problems { grid-template-columns: 1fr; }
+  .hero-copy h1 { font-size: 2rem; }
+  .quiz { grid-template-columns: 1fr; justify-items: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .walker { transition-duration: 1ms; }
+  .typing.on circle { animation: none; opacity: 1; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="topbar">
+  <div class="brand"><span class="brand-dot"></span>Codify · маскот</div>
+  <div class="row">
+    <button class="chip" id="sound" aria-pressed="false">Звук</button>
+    <button class="chip" id="theme" aria-pressed="false">Тёмная тема</button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-copy">
+    <div class="kicker">Предложение</div>
+    <h1>AiCo 2.0</h1>
+    <p>Напарник, который учится вместе с ребёнком. Форма осталась знакомой: белый купол на синей плитке. Добавились три приметы, которых нет ни у Dots, ни у Grok.</p>
+    <ul class="traits">
+      <li><b>^ +</b><span>Глаза из символов кода. Радость это <span class="mono">^ ^</span>, ошибка <span class="mono">x x</span>, восторг <span class="mono">+ +</span>.</span></li>
+      <li><b>▮</b><span>Лаймовая энергия внутри. Её становится больше с каждым уроком.</span></li>
+      <li><b>■</b><span>Пиксель Ai над головой. Это второй герой: он подсказывает и показывает на кнопки.</span></li>
+    </ul>
+    <p class="small soft">Поводи мышкой: AiCo смотрит на курсор. Нажми на эмоцию, на «+ урок» или на форму. Включи звук сверху.</p>
+  </div>
+  <div class="stage">
+    <div class="host big" id="hero"></div>
+    <div class="chips" id="hero-emo"></div>
+    <div class="row">
+      <button class="btn" id="hero-plus">+ урок</button>
+      <button class="btn ghost" id="hero-reset">Обнулить</button>
+    </div>
+    <div class="chips" id="hero-shape"></div>
+  </div>
+</div>
+
+<section>
+  <div class="section-head">
+    <h2>Что мешает сейчас</h2>
+    <p class="soft">Нынешний AiCo аккуратный, но его легко принять за чужого персонажа.</p>
+  </div>
+  <div class="card problems">
+    <div class="host" id="current" style="width:200px"></div>
+    <ol>
+      <li><b>Магазин повторяет Dots.</b> У Dots есть треугольник с бабочкой, зайчик в наушниках, облако в берете. У нас в магазине треугольник, облако, наушники и бантик. Кто видел Dots, решит, что это копия.</li>
+      <li><b>Своей приметы нет.</b> Белая фигура с двумя глазами на цветной плитке есть у многих ИИ-помощников. Значок C и вырез уже пробовали, они не прижились.</li>
+      <li><b>Эмоции трудно различить.</b> Почти все эмоции меняют только высоту и наклон капсул. На иконке 32 px «спокоен», «сосредоточен» и «грустит» выглядят одинаково.</li>
+      <li><b>Персонаж ничего не делает.</b> Он реагирует, но не связан с учёбой: не показывает прогресс, не подсказывает, его нельзя программировать.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Семь идей</h2>
+    <p class="soft">Каждую можно потрогать. Их можно брать по одной или вместе, как в AiCo 2.0 наверху.</p>
+  </div>
+  <div class="ideas">
+
+    <article class="card idea">
+      <div class="stage">
+        <div class="host" id="c-glyph"></div>
+        <div class="chips" id="c-glyph-emo"></div>
+        <div class="alphabet" id="c-alpha"></div>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">01</div>
+        <h3>Глаза из символов</h3>
+        <p>Глаз в покое остаётся капсулой, как сейчас. Но капсула это просто толстая палочка. Палочку можно согнуть в <span class="mono">^</span>, сложить в <span class="mono">+</span> или <span class="mono">x</span>, сжать в точку. Глаз перетекает из символа в символ.</p>
+        <dl>
+          <dt>Чем лучше Dots</dt>
+          <dd>У Dots эмоции держатся на овальных глазах. У AiCo каждая эмоция это отдельный знак, его видно даже на 24 px. И это символы, которые ребёнок встречает в коде.</dd>
+          <dt>Как встроить</dt>
+          <dd>В mascot.json вместо формы глаза хранить два штриха по три точки. Новый символ пишется одной строкой.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card idea">
+      <div class="stage">
+        <div class="host" id="c-energy"></div>
+        <div class="meter">
+          <label class="small soft" for="c-energy-lvl">Прогресс ученика</label>
+          <input type="range" id="c-energy-lvl" min="0" max="100" value="45">
+        </div>
+        <div class="row">
+          <button class="btn" id="c-energy-plus">+ урок</button>
+          <button class="btn ghost" id="c-energy-shake">Встряхнуть</button>
+        </div>
+        <p class="hint">Поводи мышкой над плиткой влево и вправо: AiCo наклонится, энергия плеснёт.</p>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">02</div>
+        <h3>Энергия внутри</h3>
+        <p>Внутри AiCo лаймовая энергия. Каждый урок добавляет немного, пузырьки поднимаются вверх. Если AiCo качнуть, энергия плещется. Полный AiCo вспыхивает один раз.</p>
+        <dl>
+          <dt>Чем лучше Dots</dt>
+          <dd>Маскот сам показывает прогресс. Ребёнку не нужна отдельная полоска: он видит, что его AiCo наполнился.</dd>
+          <dt>Как встроить</dt>
+          <dd><span class="mono">aiCo.setEnergy(0.6)</span>, уровень берётся из прогресса ученика. Лайм в дизайн-системе уже значит прогресс.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card idea">
+      <div class="stage">
+        <div class="host" id="c-morph"></div>
+        <div class="chips" id="c-morph-shape"></div>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">03</div>
+        <h3>Превращения вместо форм</h3>
+        <p>Форма не покупается, а меняется по смыслу. Пока AiCo думает, он шестерёнка. Ребёнок получил алмазы, AiCo стал алмазом. Серия семь дней, AiCo звезда. Тело перетекает волной от макушки, глаза остаются на месте.</p>
+        <dl>
+          <dt>Чем лучше Dots</dt>
+          <dd>У Dots каждый персонаж это своя фигура. У нас один герой, который умеет превращаться. Облако и треугольник из магазина можно убрать, это как раз фигуры Dots.</dd>
+          <dt>Как встроить</dt>
+          <dd>Каждая форма это 96 расстояний от центра. Любую фигуру можно описать так и перетечь в неё из любой другой.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card idea">
+      <div class="stage" id="duo-stage">
+        <div class="quiz">
+          <div class="host" id="c-duo"></div>
+          <div class="quiz-card">
+            <div class="small soft">Сколько раз моргнёт AiCo?</div>
+            <pre>повтори(3) {
+  моргни()
+}</pre>
+            <div class="answers" id="duo-answers">
+              <button data-a="1">1</button>
+              <button data-a="3">3</button>
+              <button data-a="4">4</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn" id="duo-hint">Подсказка</button>
+          <button class="btn ghost" id="duo-reset">Заново</button>
+        </div>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">04</div>
+        <h3>Напарник Ai</h3>
+        <p>Имя AiCo теперь про двоих: большой Co и маленький пиксель Ai. Ai сидит на макушке и отстаёт на долю секунды, когда Co прыгает. По подсказке Ai вылетает с плитки и садится на нужную кнопку. Co следит за ним глазами.</p>
+        <dl>
+          <dt>Чем лучше Dots</dt>
+          <dd>Подсказка становится частью персонажа, а не стрелкой поверх экрана. Двое у одного кода это парное программирование, так в Codify и учат.</dd>
+          <dt>Ещё плюс</dt>
+          <dd>Пиксель над куполом даёт силуэт, который не спутать с другими. Это видно в таблице размеров ниже.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card idea">
+      <div class="stage">
+        <div class="host" id="c-jelly"></div>
+        <p class="hint">Потяни AiCo мышкой или пальцем и отпусти. Можно просто ткнуть.</p>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">05</div>
+        <h3>Живое желе</h3>
+        <p>Тело по-настоящему мягкое. Его можно потянуть, и оно догоняет палец. Если ткнуть, по краю бежит волна. Здесь AiCo лаймовый пиксель на тёмной плитке.</p>
+        <dl>
+          <dt>Где пригодится</dt>
+          <dd>Экран загрузки, профиль, ожидание результата. Ребёнку есть чем заняться, пока ничего не происходит.</dd>
+          <dt>Как встроить</dt>
+          <dd>Та же модель из 96 точек, что у превращений. Мягкость это одно число в настройках.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card idea">
+      <div class="stage">
+        <canvas class="gl" id="c-3d" width="340" height="340" aria-label="Объёмный AiCo"></canvas>
+        <p class="gl-fallback small soft" id="c-3d-fallback">Браузер не дал WebGL, объёмную версию показать не получилось.</p>
+        <div class="chips" id="c-3d-emo"></div>
+        <p class="hint">Поводи мышкой и нажми на AiCo.</p>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">06</div>
+        <h3>Объёмный AiCo</h3>
+        <p>Тот же AiCo, только объёмный. Он рисуется прямо в браузере: мягкий блик, тень на плитке, глаза-бусины, пиксель Ai парит над головой. Голова поворачивается за курсором.</p>
+        <dl>
+          <dt>Где пригодится</dt>
+          <dd>Иконка приложения, промо, магазин, стикеры, заставка. Плоский AiCo живёт в интерфейсе, объёмный в рекламе.</dd>
+          <dt>Чем лучше Grok</dt>
+          <dd>У Grok объёмные персонажи сложные и детальные. Наш объёмный AiCo это тот же простой силуэт, его узнают в любом виде.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card idea">
+      <div class="stage">
+        <div class="track">
+          <div class="lane" id="lane">
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell goal"></div>
+            <div class="walker" id="walker"><div class="host" id="c-prog"></div></div>
+          </div>
+        </div>
+        <div class="prog">
+          <div class="code" id="code" aria-live="polite"></div>
+          <div class="chips cmds" id="cmds"></div>
+          <div class="row">
+            <button class="btn" id="run">Запустить</button>
+            <button class="btn ghost" id="clear">Стереть</button>
+          </div>
+          <div class="status" id="status"></div>
+        </div>
+      </div>
+      <div class="idea-copy">
+        <div class="idea-num">07</div>
+        <h3>Запрограммируй AiCo</h3>
+        <p>Первое задание в приложении: ребёнок собирает маленькую программу, и AiCo её выполняет. Здесь цель довести AiCo до звезды. В программе уже есть три строки, допиши остальное и нажми «Запустить».</p>
+        <dl>
+          <dt>Чем лучше Dots и Grok</dt>
+          <dd>Их персонажи разговаривают. Нашего можно программировать. Это и есть Codify: ребёнок с первой минуты управляет своим героем кодом.</dd>
+          <dt>Как встроить</dt>
+          <dd>Команды берутся из того же API, что у маскота: <span class="mono">set</span>, <span class="mono">morph</span>, <span class="mono">blink</span>. Подходит и к блокам Роберта.</dd>
+        </dl>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Маленькие размеры</h2>
+    <p class="soft">Маскот живёт в иконке приложения, в уведомлении, в списке. Пиксель Ai и глаза-символы читаются даже на 16 и 24 px.</p>
+  </div>
+  <div class="card sizes"><table id="sizes"></table></div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Сравнение</h2>
+  </div>
+  <div class="card compare">
+    <table>
+      <thead><tr><th></th><th>Dots (OpenAI)</th><th>Grok</th><th>AiCo 2.0</th></tr></thead>
+      <tbody>
+        <tr><th>Кто это</th><td>Агенты-помощники для работы. Мягкие цветные фигурки: сердце, лягушка, облако в берете.</td><td>Персонажи для разговора, например Ani и Rudi. Большие, детальные.</td><td>Напарник ребёнка в учёбе.</td></tr>
+        <tr><th>Как узнать</th><td>У каждого своя фигура и аксессуар.</td><td>По детальному рисунку. На маленькой иконке не читается.</td><td>Купол, глаза-символы и пиксель Ai сверху.</td></tr>
+        <tr><th>Эмоции</th><td>Глаза и поза.</td><td>Мимика объёмной модели.</td><td>Глаза перестраиваются в символы кода плюс движение тела.</td></tr>
+        <tr><th>Связь с продуктом</th><td>Аватар агента.</td><td>Развлечение и общение.</td><td>Показывает прогресс энергией, подсказывает через Ai, его можно программировать.</td></tr>
+        <tr><th>Во что обходится</th><td>Отдельный рисунок на каждого.</td><td>Объёмные модели и анимация.</td><td>Один SVG и JSON. Новая эмоция или форма пишется строкой.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="section-head">
+    <h2>Что предлагаю взять</h2>
+  </div>
+  <div class="plan">
+    <div class="card"><span class="tag lime">Основа</span><h3>Купол + символы + энергия + Ai</h3><p class="soft">Это AiCo 2.0 наверху страницы. Купол оставляем, остальное добавляем.</p></div>
+    <div class="card"><span class="tag">Награды</span><h3>Превращения за достижения</h3><p class="soft">Звезда, алмаз, сердце открываются за успехи, а не покупаются. Облако, треугольник, наушники и бантик убрать.</p></div>
+    <div class="card"><span class="tag">Магазин</span><h3>Что продавать за алмазы</h3><p class="soft">Наборы символов для глаз, цвет энергии, след за пикселем Ai, звуки. Всё это только наше.</p></div>
+    <div class="card"><span class="tag">Первый урок</span><h3>Запрограммируй AiCo</h3><p class="soft">Первое задание после входа. Ребёнок сразу пишет код и видит результат.</p></div>
+    <div class="card"><span class="tag">Промо</span><h3>Объёмная версия</h3><p class="soft">Иконка, реклама, стикеры. Рисуется из того же описания, что и плоский.</p></div>
+    <div class="card"><span class="tag">Загрузка</span><h3>Желе</h3><p class="soft">Экран ожидания, где AiCo можно потянуть пальцем.</p></div>
+  </div>
+  <p class="sources">Про Dots: <a href="https://techcrunch.com/2026/09/29/openai-launches-dots-its-bubbly-agentic-avatar/">TechCrunch</a>, <a href="https://www.fastcompany.com/91615068/openai-dots-agent-crew-of-friendly-mascots">Fast Company</a>. Про Grok: <a href="https://www.wikipedia.org/wiki/Grok_1">Wikipedia</a>, <a href="https://www.bloomberg.com/opinion/articles/2025-07-18/elon-musk-s-grok-chatbot-is-cashing-in-on-ai-romance">Bloomberg</a>.</p>
+</section>
+
+</div>
+
+<script>
+'use strict';
+
+/* ---------- Цвета: токены дизайн-системы ---------- */
+const PAL = {
+  'white': 'oklch(1 0 0)', 'logo-cyan': '#00c4fa', 'logo-blue': '#246fff',
+  'blue-50': 'oklch(0.975 0.011 264.5)', 'blue-100': 'oklch(0.945 0.026 266.6)', 'blue-200': 'oklch(0.895 0.051 268.1)',
+  'blue-300': 'oklch(0.825 0.087 268.6)', 'blue-400': 'oklch(0.734 0.137 269.0)', 'blue-500': 'oklch(0.645 0.189 268.8)',
+  'blue-600': 'oklch(0.556 0.216 268.8)', 'blue-700': 'oklch(0.470 0.216 268.9)', 'blue-800': 'oklch(0.390 0.182 268.8)',
+  'blue-900': 'oklch(0.315 0.155 268.7)', 'blue-950': 'oklch(0.236 0.125 268.8)',
+  'lime-100': 'oklch(0.946 0.036 118.9)', 'lime-200': 'oklch(0.896 0.072 118.9)', 'lime-300': 'oklch(0.848 0.179 118.2)',
+  'lime-400': 'oklch(0.736 0.157 118.1)', 'lime-500': 'oklch(0.645 0.150 118.2)', 'lime-600': 'oklch(0.554 0.129 117.8)',
+  'lime-700': 'oklch(0.469 0.109 117.7)',
+  'neutral-100': 'oklch(0.964 0.012 271.3)', 'neutral-800': 'oklch(0.330 0.013 273.0)', 'neutral-950': 'oklch(0.191 0.011 268.1)',
+  'error-500': 'oklch(0.645 0.191 24.9)', 'error-600': 'oklch(0.554 0.190 25.1)',
+};
+
+/* Цвет токена в линейном RGB для WebGL. */
+function lin(key) {
+  const s = PAL[key];
+  if (s[0] === '#') {
+    const n = parseInt(s.slice(1), 16);
+    return [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  }
+  const [L, C, h] = s.match(/[\d.]+/g).map(Number);
+  const a = C * Math.cos(h * Math.PI / 180), b = C * Math.sin(h * Math.PI / 180);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const q = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * q,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * q,
+          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * q].map(v => Math.min(1, Math.max(0, v)));
+}
+
+/* ---------- Пружины и общий цикл ---------- */
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+
+class S {
+  constructor(x, k = 200, d = 18) { this.x = x; this.t = x; this.v = 0; this.k = k; this.d = d; }
+  step(dt) { this.v += (this.k * (this.t - this.x) - this.d * this.v) * dt; this.x += this.v * dt; return this.x; }
+  snap(x) { this.x = this.t = x; this.v = 0; }
+}
+
+const pointer = { x: -1e4, y: -1e4, t: -1e9 };
+addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; pointer.t = performance.now(); }, { passive: true });
+
+const LOOP = new Set();
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.target.__actor) e.target.__actor.visible = e.isIntersecting; }), { rootMargin: '120px' });
+function track(actor, el) { el.__actor = actor; actor.visible = false; io.observe(el); LOOP.add(actor); }
+let lastT = performance.now();
+function tick(now) {
+  const dt = Math.min(1 / 30, Math.max(0.001, (now - lastT) / 1000));
+  lastT = now;
+  for (const a of LOOP) if (a.visible) a.update(dt, now / 1000);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ---------- Звук: короткие 8-битные сигналы, выключен по умолчанию ---------- */
+let soundOn = false, actx = null;
+function blip(name) {
+  if (!soundOn) return;
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  const seq = {
+    happy: [[660, 0.07], [990, 0.1]], excited: [[523, 0.06], [659, 0.06], [784, 0.06], [1047, 0.12]],
+    love: [[784, 0.09], [1175, 0.14]], thinking: [[440, 0.04], [0, 0.05], [440, 0.04]], confused: [[520, 0.08], [460, 0.1]],
+    error: [[160, 0.16]], sad: [[440, 0.12], [330, 0.2]], surprised: [[500, 0.03], [1200, 0.1]],
+    sleepy: [[300, 0.25]], wink: [[880, 0.05], [1320, 0.07]], focused: [[600, 0.05]], neutral: [[700, 0.05]],
+    morph: [[300, 0.05], [600, 0.05], [900, 0.07]], level: [[784, 0.05], [988, 0.05]], full: [[523, 0.07], [784, 0.07], [1047, 0.07], [1568, 0.18]],
+    step: [[420, 0.04]], jump: [[300, 0.03], [700, 0.08]],
+  }[name];
+  if (!seq) return;
+  let t = actx.currentTime + 0.01;
+  for (const [f, d] of seq) {
+    if (f) {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = name === 'error' ? 'sawtooth' : 'square';
+      o.frequency.setValueAtTime(f, t);
+      if (name === 'sleepy' || name === 'sad') o.frequency.exponentialRampToValueAtTime(f * 0.7, t + d);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.05, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + d + 0.02);
+    }
+    t += d;
+  }
+}
+
+/* ---------- Формы: 96 расстояний от центра ---------- */
+const N = 96, TAU = Math.PI * 2;
+const ANG = Array.from({ length: N }, (_, i) => -Math.PI / 2 + i * TAU / N);
+const COS = ANG.map(Math.cos), SIN = ANG.map(Math.sin);
+const radial = f => Float32Array.from(ANG, f);
+function polarize(pts) {
+  const r = new Float32Array(N).fill(-1);
+  for (const [x, y] of pts) {
+    let a = Math.atan2(y, x) + Math.PI / 2; a = (a % TAU + TAU) % TAU;
+    const i = Math.round(a / TAU * N) % N, d = Math.hypot(x, y);
+    if (d > r[i]) r[i] = d;
+  }
+  for (let i = 0; i < N; i++) if (r[i] < 0) {
+    let a = i, b = i; while (r[(a + N) % N] < 0) a--; while (r[b % N] < 0) b++;
+    const ra = r[(a + N) % N], rb = r[b % N]; r[i] = ra + (rb - ra) * (i - a) / (b - a);
+  }
+  return r;
+}
+function smooth(r, passes) {
+  for (let p = 0; p < passes; p++) { const c = r.slice(); for (let i = 0; i < N; i++) r[i] = (c[(i + N - 1) % N] + 2 * c[i] + c[(i + 1) % N]) / 4; }
+  return r;
+}
+function poly(vs, steps = 80) {
+  const out = [];
+  vs.forEach(([x1, y1], i) => { const [x2, y2] = vs[(i + 1) % vs.length]; for (let s = 0; s < steps; s++) out.push([x1 + (x2 - x1) * s / steps, y1 + (y2 - y1) * s / steps]); });
+  return out;
+}
+const curve = (f, n = 4000) => Array.from({ length: n }, (_, i) => f(i / n * TAU));
+const superellipse = (t, a, b, n) => Math.pow(Math.abs(Math.cos(t) / a) ** n + Math.abs(Math.sin(t) / b) ** n, -1 / n);
+
+/* eye: где глаза относительно центра; floor: где «пол» для сплющивания (купол стоит на краю плитки). */
+const SHAPES = {
+  dome:  { label: 'Купол', cx: 100, cy: 152, eye: -36, floor: 200, r: radial(() => 84) },
+  ball:  { label: 'Шар', cx: 100, cy: 114, eye: -4, r: radial(() => 62) },
+  pixel: { label: 'Пиксель', cx: 100, cy: 114, eye: -4, r: radial(t => superellipse(t, 66, 60, 4.6)) },
+  gear:  { label: 'Шестерёнка', meaning: 'думает', cx: 100, cy: 112, eye: 0, r: smooth(radial(t => 60 + 10 * clamp(Math.cos(8 * (t + Math.PI / 2)) * 2.6, -1, 1)), 2) },
+  gem:   { label: 'Алмаз', meaning: 'получил алмазы', cx: 100, cy: 108, eye: -8, r: smooth(polarize(poly([[-40, -42], [40, -42], [70, -10], [0, 68], [-70, -10]])), 3) },
+  star:  { label: 'Звезда', meaning: 'серия 7 дней', cx: 100, cy: 112, eye: 4, r: smooth(polarize(poly(Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, R = i % 2 ? 46 : 84; return [Math.cos(a) * R, Math.sin(a) * R]; }))), 4) },
+  heart: { label: 'Сердце', meaning: 'любимый урок', cx: 100, cy: 110, eye: -8, r: smooth(polarize(curve(t => { const x = 16 * Math.sin(t) ** 3, y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t); return [x * 4.3, -(y + 2.5) * 4.3]; })), 1) },
+  drop:  { label: 'Капля', meaning: 'энергия', cx: 100, cy: 112, eye: 14, r: smooth(polarize(curve(t => [Math.sin(t) * Math.pow(Math.abs(Math.sin(t / 2)), 1.6) * 92, -Math.cos(t) * 76 - 18])), 2) },
+};
+
+/* ---------- Глаза-символы: два штриха по три точки + толщина ---------- */
+const G = {
+  pill:  { a: [0, -8, 0, 0, 0, 8], w: 14, s: 1, label: 'капсула', sym: '|' },
+  short: { a: [0, -3, 0, 0, 0, 3], w: 14, s: 1, label: 'короткая', sym: '▮' },
+  flat:  { a: [-5, 0, 0, 0, 5, 0], w: 12, s: 1, label: 'плоская', sym: '▬' },
+  dot:   { a: [0, 0, 0, 0, 0, 0], w: 13, s: 1, label: 'точка', sym: '•' },
+  big:   { a: [0, -1, 0, 0, 0, 1], w: 24, s: 1, label: 'круг', sym: 'O' },
+  caret: { a: [-8, 4, 0, -5, 8, 4], w: 7, s: 0, label: 'радость', sym: '^' },
+  plus:  { a: [0, -9, 0, 0, 0, 9], b: [-9, 0, 0, 0, 9, 0], w: 6, s: 0, label: 'искра', sym: '+' },
+  x:     { a: [-7, -7, 0, 0, 7, 7], b: [-7, 7, 0, 0, 7, -7], w: 6.5, s: 0, label: 'ошибка', sym: 'x' },
+  dash:  { a: [-9, 1, 0, 1, 9, 1], w: 7, s: 0, label: 'сон', sym: '-' },
+  heart: { a: [-4.5, -3, -6.5, 1.5, 0, 8.5], b: [4.5, -3, 6.5, 1.5, 0, 8.5], w: 9, s: 0, label: 'сердце', sym: '♥' },
+  chev:  { a: [-5, -8, 5, 0, -5, 8], w: 7, s: 0, mirror: true, label: 'хитрый', sym: '>' },
+};
+function glyph(name, side) {
+  const g = G[name];
+  const a = g.a.slice(), b = (g.b || g.a).slice();
+  if (g.mirror && side === 1) for (let i = 0; i < 6; i += 2) { a[i] = -a[i]; b[i] = -b[i]; }
+  return { a, b, w: g.w, s: g.s };
+}
+
+/* ---------- Эмоции. enter играет один раз; бесконечно только покачивание и точки «думает». ---------- */
+const EMO = {
+  neutral:   { label: 'Спокоен', g: 'pill' },
+  happy:     { label: 'Рад', g: 'caret', tint: 1, enter: 'hop', lift: -2 },
+  excited:   { label: 'В восторге', g: 'plus', tint: 1, enter: 'jump', es: 1.15 },
+  love:      { label: 'Нравится', g: 'heart', color: 'error-500', enter: 'pop' },
+  thinking:  { label: 'Думает', g: 'dot', look: [6, -7], tilt: -4, enter: 'wobble', typing: 1 },
+  confused:  { label: 'Озадачен', g: ['dot', 'flat'], look: [-4, 0], et: [0, -16], tilt: 5, enter: 'shake' },
+  error:     { label: 'Ошибка', g: 'x', color: 'error-600', enter: 'shake' },
+  sad:       { label: 'Грустит', g: 'flat', et: [20, 20], look: [0, 5], lift: 4, sq: 0.95, enter: 'droop' },
+  surprised: { label: 'Удивлён', g: 'big', es: 1.08, spread: 1.1, lift: -3, enter: 'pop' },
+  sleepy:    { label: 'Засыпает', g: 'dash', look: [0, 4], tilt: 6, lift: 3, sq: 0.96, enter: 'sink', noblink: 1 },
+  wink:      { label: 'Подмигивает', g: ['pill', 'caret'], enter: 'nod', noblink: 1 },
+  focused:   { label: 'Сосредоточен', g: 'flat', et: [-10, -10], look: [0, 2], enter: 'settle' },
+  sly:       { label: 'Хитрит', g: 'chev', tint: 1, enter: 'nod' },
+};
+
+/* ---------- AiCo: SVG по описанию ---------- */
+let UID = 0;
+class Aico {
+  constructor(host, opts = {}) {
+    const o = this.o = Object.assign({
+      shape: 'dome', body: ['white', 'blue-50'], tile: ['logo-cyan', 'logo-blue'], eye: 'logo-blue', tint: 'lime-600',
+      liquid: false, level: 0.4, pixel: false, track: true, idle: true, jelly: 0.25, drag: false, emotion: 'neutral', label: 'AiCo', still: false,
+    }, opts);
+    const id = 'aico' + (++UID);
+    const sh = SHAPES[o.shape];
+    const tileOn = !!o.tile;
+    host.innerHTML = `<svg class="aico" viewBox="0 0 200 200" role="img" aria-label="${o.label}">
+      <defs>
+        ${tileOn ? `<linearGradient id="${id}t" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${PAL[o.tile[0]]}"/><stop offset="1" stop-color="${PAL[o.tile[1]]}"/></linearGradient>` : ''}
+        <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0.4" stop-color="${PAL[o.body[0]]}"/><stop offset="1" stop-color="${PAL[o.body[1]]}"/></linearGradient>
+        <linearGradient id="${id}l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${PAL['lime-300']}"/><stop offset="1" stop-color="${PAL['lime-500']}"/></linearGradient>
+        <radialGradient id="${id}g" cx="0.25" cy="0.1" r="0.8"><stop offset="0" stop-color="#fff" stop-opacity="0.28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        <radialGradient id="${id}s" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="${PAL['blue-950']}" stop-opacity="0.5"/><stop offset="1" stop-color="${PAL['blue-950']}" stop-opacity="0"/></radialGradient>
+        <clipPath id="${id}ct"><rect width="200" height="200" rx="44"/></clipPath>
+        <clipPath id="${id}cb"><path class="clip"/></clipPath>
+      </defs>
+      <g ${tileOn ? `clip-path="url(#${id}ct)"` : ''}>
+        ${tileOn ? `<rect width="200" height="200" fill="url(#${id}t)"/><rect width="200" height="200" fill="url(#${id}g)"/>` : ''}
+        <ellipse class="shadow" cx="100" cy="190" rx="50" ry="8" fill="url(#${id}s)" opacity="0"/>
+        <g class="rig">
+          <path class="body" fill="url(#${id}b)"/>
+          <g clip-path="url(#${id}cb)" ${o.liquid ? '' : 'style="display:none"'}>
+            <path class="liquid" fill="url(#${id}l)"/>
+            <g class="bubbles" fill="${PAL['lime-100']}"></g>
+            <path class="surf" fill="none" stroke="${PAL['lime-100']}" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+          </g>
+          <g class="face" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path class="e"/><path class="e"/><path class="e"/><path class="e"/>
+            <circle class="shine" r="2.6" fill="#fff" stroke="none"/><circle class="shine" r="2.6" fill="#fff" stroke="none"/>
+            <g class="typing" fill="${PAL['blue-300']}" stroke="none"><circle r="3.4"/><circle r="3.4"/><circle r="3.4"/></g>
+          </g>
+        </g>
+      </g>
+      <circle class="ring" cx="100" cy="120" r="80" fill="none" stroke="${PAL['lime-300']}" stroke-width="6" opacity="0" style="transform-box: fill-box; transform-origin: center"/>
+      <rect class="pix" width="18" height="18" rx="5" fill="${PAL['lime-300']}" stroke="${PAL['lime-500']}" stroke-width="1.5" ${o.pixel ? '' : 'style="display:none"'}/>
+    </svg>`;
+    const svg = this.svg = host.firstElementChild;
+    const $ = s => svg.querySelector(s), $$ = s => svg.querySelectorAll(s);
+    Object.assign(this, {
+      rig: $('.rig'), body: $('.body'), clip: $('.clip'), liquid: $('.liquid'), surf: $('.surf'), bubblesG: $('.bubbles'),
+      face: $('.face'), eyes: [...$$('.e')], shines: [...$$('.shine')], typing: $('.typing'), typingDots: [...$$('.typing circle')],
+      shadow: $('.shadow'), ring: $('.ring'), pix: $('.pix'),
+    });
+    this.r = Float32Array.from(sh.r); this.rv = new Float32Array(N); this.R = Float32Array.from(sh.r);
+    this.pend = null; this.at = new Float64Array(N); this.shape = o.shape;
+    this.cx = new S(sh.cx, 120, 16); this.cy = new S(sh.cy, 120, 16); this.eo = new S(sh.eye, 120, 16);
+    this.lift = new S(0, 220, 14); this.sq = new S(1, 300, 12); this.tilt = new S(0, 160, 10); this.sx = new S(0, 520, 9);
+    this.lx = new S(0, 200, 18); this.ly = new S(0, 200, 18); this.es = new S(1, 300, 14); this.blk = new S(0, 900, 45);
+    this.gt = new S(1, 260, 19); this.spread = new S(1, 200, 18); this.et = [new S(0, 200, 18), new S(0, 200, 18)];
+    this.level = new S(o.level, 40, 12); this.ltilt = new S(0, 60, 5);
+    this.px = new S(100, 110, 11); this.py = new S(40, 110, 11);
+    this.M = 24; this.wh = new Float32Array(this.M + 1); this.wv = new Float32Array(this.M + 1);
+    this.bubbles = []; this.drag = null; this.dragX = 0; this.dragY = 0;
+    this.g0 = [glyph('pill', 0), glyph('pill', 1)]; this.g1 = this.g0;
+    this.nextBlink = 0; this.nextGlance = 0; this.glance = null; this.attn = null;
+    this.E = EMO.neutral; this.emoSq = 1;
+    this.set(o.emotion, true);
+    if (o.drag) this.bindDrag();
+    this.py.snap(sh.cy - sh.r[0] - 2);
+    if (o.still) { this.update(0.016, 0); } else track(this, svg);
+  }
+
+  /* Глаз без моргания или с ним: смесь двух символов по пружине gt. */
+  eyeRaw(side, withBlink) {
+    const g0 = this.g0[side], g1 = this.g1[side], t = this.gt.x, a = [], b = [];
+    for (let i = 0; i < 6; i++) { a[i] = lerp(g0.a[i], g1.a[i], t); b[i] = lerp(g0.b[i], g1.b[i], t); }
+    let w = lerp(g0.w, g1.w, t), s = clamp(lerp(g0.s, g1.s, t), 0, 1);
+    const k = withBlink ? clamp(this.blk.x, 0, 1) : 0;
+    if (k > 0) { const d = G.dash.a; for (let i = 0; i < 6; i++) { a[i] = lerp(a[i], d[i], k); b[i] = lerp(b[i], d[i], k); } w = lerp(w, 7, k); s *= 1 - k; }
+    return { a, b, w, s };
+  }
+
+  set(name, silent) {
+    const e = EMO[name]; if (!e) return;
+    this.emo = name; this.E = e;
+    const gs = Array.isArray(e.g) ? e.g : [e.g, e.g];
+    this.g0 = [this.eyeRaw(0, false), this.eyeRaw(1, false)];
+    this.g1 = [glyph(gs[0], 0), glyph(gs[1], 1)];
+    this.gt.x = 0; this.gt.v = 0; this.gt.t = 1;
+    if (silent) this.gt.x = 1;
+    this.lift.t = e.lift || 0; this.emoSq = e.sq || 1; this.sq.t = this.emoSq;
+    this.es.t = e.es || 1; this.spread.t = e.spread || 1;
+    const et = e.et || [0, 0]; this.et[0].t = et[0]; this.et[1].t = et[1];
+    if (silent) { this.et[0].snap(et[0]); this.et[1].snap(et[1]); this.es.snap(this.es.t); this.spread.snap(this.spread.t); }
+    const tintOk = !this.o.liquid || this.level.t < 0.55;
+    this.face.style.color = PAL[e.color || (e.tint && tintOk ? this.o.tint : this.o.eye)];
+    this.typing.classList.toggle('on', !!e.typing);
+    if (!silent) { this.enter(e.enter || 'settle'); blip(name); }
+  }
+
+  enter(kind) {
+    if (REDUCED) return;
+    const all = k => { for (let i = 0; i < N; i++) this.rv[i] += k; };
+    switch (kind) {
+      case 'settle': this.sq.v -= 1.2; break;
+      case 'hop': this.lift.v -= 170; this.sq.v += 2.2; this.splash(0.6); break;
+      case 'jump':
+        this.sq.t = 0.84;
+        setTimeout(() => { this.sq.t = this.emoSq; this.sq.v += 4.5; this.lift.v -= 300; this.splash(1); }, 150);
+        break;
+      case 'pop': this.es.v += 7; all(90); break;
+      case 'wobble': this.tilt.v += 110; this.splash(0.5); break;
+      case 'shake': this.sx.v += 300; this.splash(0.8); break;
+      case 'droop': this.sq.v -= 2; break;
+      case 'nod': this.tilt.v -= 90; break;
+    }
+  }
+
+  blink() { this.blk.t = 1; setTimeout(() => { this.blk.t = 0; }, 90); }
+
+  morph(name) {
+    const sh = SHAPES[name]; if (!sh) return;
+    this.shape = name; this.pend = sh.r;
+    const now = performance.now();
+    for (let i = 0; i < N; i++) this.at[i] = now + Math.min(i, N - i) / (N / 2) * 180;
+    this.cx.t = sh.cx; this.cy.t = sh.cy; this.eo.t = sh.eye;
+    this.splash(1); blip('morph');
+  }
+
+  splash(k) {
+    if (!this.o.liquid) return;
+    const ph = Math.random() * 6;
+    for (let j = 0; j <= this.M; j++) this.wv[j] += k * 45 * Math.sin(j * 0.8 + ph);
+  }
+
+  addLevel(d) {
+    const was = this.level.t;
+    this.level.t = clamp(was + d, 0, 1);
+    if (this.level.t > was) for (let i = 0; i < 7; i++) this.bubbles.push({ x: 70 + Math.random() * 60, y: 196 + Math.random() * 20, r: 2 + Math.random() * 3.5, vy: 30 + Math.random() * 40, ph: Math.random() * 6 });
+    if (this.level.t >= 1 && was < 1) {
+      this.set('excited');
+      blip('full');
+      if (!REDUCED) this.ring.animate([{ opacity: 0.9, transform: 'scale(0.7)' }, { opacity: 0, transform: 'scale(1.35)' }], { duration: 700, easing: 'cubic-bezier(0.2,0,0,1)' });
+    } else if (d > 0) { this.set('happy'); blip('level'); }
+  }
+
+  bindDrag() {
+    const svg = this.svg;
+    const toSvg = e => { const rc = svg.getBoundingClientRect(); return [(e.clientX - rc.left) / rc.width * 200, (e.clientY - rc.top) / rc.height * 200]; };
+    svg.style.cursor = 'grab';
+    svg.addEventListener('pointerdown', e => {
+      svg.setPointerCapture(e.pointerId);
+      const [x, y] = toSvg(e);
+      this.drag = { x0: x, y0: y, moved: false };
+      svg.style.cursor = 'grabbing';
+    });
+    svg.addEventListener('pointermove', e => {
+      if (!this.drag) return;
+      const [x, y] = toSvg(e), dx = x - this.drag.x0, dy = y - this.drag.y0;
+      if (Math.hypot(dx, dy) > 4) this.drag.moved = true;
+      this.dragX = clamp(dx * 0.7, -46, 46); this.dragY = clamp(dy * 0.7, -40, 40);
+    });
+    const up = e => {
+      if (!this.drag) return;
+      if (!this.drag.moved) {
+        const [x, y] = toSvg(e);
+        let a = Math.atan2(y - this.cy.x, x - this.cx.x) + Math.PI / 2; a = (a % TAU + TAU) % TAU;
+        const i = Math.round(a / TAU * N) % N;
+        for (let k = -3; k <= 3; k++) this.rv[(i + k + N) % N] -= 260 * (1 - Math.abs(k) / 4);
+        this.set(Math.random() < 0.5 ? 'surprised' : 'happy');
+      } else this.set('happy');
+      this.drag = null; this.dragX = 0; this.dragY = 0; svg.style.cursor = 'grab';
+    };
+    svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+  }
+
+  update(dt, t) {
+    const o = this.o, E = this.E, now = t * 1000;
+    if (this.pend) {
+      let done = true;
+      for (let i = 0; i < N; i++) { if (now >= this.at[i] || o.still) this.R[i] = this.pend[i]; else done = false; }
+      if (done) this.pend = null;
+    }
+    // куда смотреть
+    let tx = 0, ty = 0;
+    if (E.look) { tx = E.look[0]; ty = E.look[1]; }
+    else if (this.attn) {
+      const p = this.attn();
+      if (p) { const rc = this.svg.getBoundingClientRect(); const dx = p.x - (rc.left + rc.width * this.cx.x / 200), dy = p.y - (rc.top + rc.height * (this.cy.x + this.eo.x) / 200); const d = Math.hypot(dx, dy) || 1; const k = Math.min(1, d / (rc.width * 0.6)); tx = dx / d * 7 * k; ty = dy / d * 5 * k; }
+    } else if (o.track && !o.still && now - pointer.t < 2500) {
+      const rc = this.svg.getBoundingClientRect();
+      const dx = pointer.x - (rc.left + rc.width * this.cx.x / 200), dy = pointer.y - (rc.top + rc.height * (this.cy.x + this.eo.x) / 200);
+      const d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / (rc.width * 0.9));
+      tx = dx / d * 7 * k; ty = dy / d * 5 * k;
+    } else if (this.glance && now < this.glance.until) { tx = this.glance.x; ty = this.glance.y; }
+    this.lx.t = tx; this.ly.t = ty;
+    if (o.idle && !o.still && !REDUCED) {
+      if (!E.noblink && now > this.nextBlink) { if (this.nextBlink) this.blink(); this.nextBlink = now + 2500 + Math.random() * 2700; }
+      if (!E.look && now > this.nextGlance && now - pointer.t > 2500) {
+        const L = [[-6, 0], [6, 0], [0, -4], [5, -3], [-5, 3]], g = L[Math.random() * L.length | 0];
+        if (this.nextGlance) this.glance = { x: g[0], y: g[1], until: now + 800 };
+        this.nextGlance = now + 3500 + Math.random() * 4500;
+      }
+    }
+    const sh = SHAPES[this.shape];
+    this.tilt.t = (E.tilt || 0) + this.lx.x * 0.35 + (this.tiltBias || 0);
+    this.cx.t = sh.cx + this.dragX; this.cy.t = sh.cy + this.dragY;
+
+    // физика: два подшага
+    const h = dt / 2, J = o.jelly * 0.012, r = this.r, R = this.R, rv = this.rv;
+    for (let s = 0; s < 2; s++) {
+      const pL = this.lift.v, pX = this.sx.v, pT = this.tilt.v, pCX = this.cx.v, pCY = this.cy.v;
+      for (const sp of [this.cx, this.cy, this.eo, this.lift, this.sq, this.tilt, this.sx, this.lx, this.ly, this.es, this.blk, this.gt, this.spread, this.et[0], this.et[1], this.level, this.ltilt, this.px, this.py]) sp.step(h);
+      const ax = (this.sx.v - pX + this.cx.v - pCX) / h, ay = (this.lift.v - pL + this.cy.v - pCY) / h;
+      for (let i = 0; i < N; i++) {
+        const i0 = (i + N - 1) % N, i1 = (i + 1) % N;
+        const dev = (r[i0] + r[i1] - 2 * r[i]) - (R[i0] + R[i1] - 2 * R[i]);
+        rv[i] += (170 * (R[i] - r[i]) - 13 * rv[i] + 900 * dev - J * (ax * COS[i] + ay * SIN[i])) * h;
+      }
+      for (let i = 0; i < N; i++) r[i] += rv[i] * h;
+      if (o.liquid) {
+        const M = this.M, wh = this.wh, wv = this.wv, dT = this.tilt.v - pT, dX = this.sx.v - pX + this.cx.v - pCX;
+        for (let j = 0; j <= M; j++) {
+          const jl = Math.max(0, j - 1), jr = Math.min(M, j + 1), rel = (j / M - 0.5) * 2;
+          wv[j] += (-50 * wh[j] - 2.4 * wv[j] + 1400 * (wh[jl] + wh[jr] - 2 * wh[j]) / 4) * h + rel * dT * 0.35 - rel * dX * 0.25;
+        }
+        for (let j = 0; j <= M; j++) wh[j] = clamp(wh[j] + wv[j] * h, -16, 16);
+      }
+    }
+    this.ltilt.t = this.tilt.x;
+    this.render(t);
+  }
+
+  render(t) {
+    const o = this.o, r = this.r, cx = this.cx.x, cy = this.cy.x;
+    let d = '';
+    for (let i = 0; i < N; i++) d += (i ? 'L' : 'M') + (cx + r[i] * COS[i]).toFixed(1) + ' ' + (cy + r[i] * SIN[i]).toFixed(1);
+    d += 'Z';
+    this.body.setAttribute('d', d);
+    const sh = SHAPES[this.shape];
+    const bottom = cy + r[N / 2], top = cy - r[0];
+    const floor = sh.floor || Math.min(200, bottom);
+    const sq = this.sq.x, sxk = 1 / Math.sqrt(Math.max(0.3, sq));
+    const bob = o.idle && !o.still && !REDUCED ? Math.sin(t * 1.7) * 1.4 : 0;
+    const lift = this.lift.x + bob;
+    this.rig.setAttribute('transform', `translate(${this.sx.x.toFixed(2)} ${lift.toFixed(2)}) rotate(${this.tilt.x.toFixed(2)} ${cx.toFixed(1)} ${floor.toFixed(1)}) translate(${cx.toFixed(1)} ${floor.toFixed(1)}) scale(${sxk.toFixed(3)} ${sq.toFixed(3)}) translate(${(-cx).toFixed(1)} ${(-floor).toFixed(1)})`);
+    // тень для парящих форм
+    if (!sh.floor) {
+      const up = clamp(-this.lift.x / 40, 0, 1);
+      this.shadow.setAttribute('opacity', (0.8 * (1 - up * 0.6)).toFixed(2));
+      this.shadow.setAttribute('rx', (r[N / 4] * 0.85 * (1 - up * 0.3)).toFixed(1));
+      this.shadow.setAttribute('cx', (cx + this.sx.x).toFixed(1));
+      this.shadow.setAttribute('cy', Math.min(192, bottom + 8).toFixed(1));
+    } else this.shadow.setAttribute('opacity', '0');
+
+    // энергия
+    if (o.liquid) {
+      this.clip.setAttribute('d', d);
+      const vb = Math.min(bottom, 200), ly = vb - (vb - top) * clamp(this.level.x, 0, 1.02) + (this.level.x >= 0.995 ? -6 : 0);
+      const slope = -Math.tan(this.ltilt.x * Math.PI / 180);
+      let ld = '', sd = '';
+      for (let j = 0; j <= this.M; j++) {
+        const x = j / this.M * 200, y = ly + this.wh[j] + slope * (x - cx);
+        const p = x.toFixed(1) + ' ' + y.toFixed(1);
+        ld += (j ? 'L' : 'M') + p; sd += (j ? 'L' : 'M') + p;
+      }
+      this.liquid.setAttribute('d', ld + 'L200 260L0 260Z');
+      this.surf.setAttribute('d', sd);
+      if (this.bubbles.length) {
+        let bd = '';
+        this.bubbles = this.bubbles.filter(b => { b.y -= b.vy * 0.016; return b.y > ly + 4; });
+        for (const b of this.bubbles) bd += `<circle cx="${(b.x + Math.sin(t * 6 + b.ph) * 2).toFixed(1)}" cy="${b.y.toFixed(1)}" r="${b.r.toFixed(1)}" opacity="0.8"/>`;
+        this.bubblesG.innerHTML = bd;
+      } else if (this.bubblesG.firstChild) this.bubblesG.innerHTML = '';
+    }
+
+    // глаза
+    const ey = cy + this.eo.x + this.ly.x, gap = 22 * this.spread.x, sc = this.es.x;
+    for (let side = 0; side < 2; side++) {
+      const ecx = cx + (side ? gap : -gap) + this.lx.x;
+      const p = this.eyeRaw(side, true);
+      const ang = (side ? 1 : -1) * this.et[side].x * Math.PI / 180, c = Math.cos(ang), s = Math.sin(ang);
+      const tr = arr => { let out = ''; for (let i = 0; i < 6; i += 2) { const x = arr[i] * sc, y = arr[i + 1] * sc; out += (i ? 'L' : 'M') + (ecx + x * c - y * s).toFixed(2) + ' ' + (ey + x * s + y * c).toFixed(2); } return out; };
+      const ea = this.eyes[side * 2], eb = this.eyes[side * 2 + 1];
+      ea.setAttribute('d', tr(p.a)); eb.setAttribute('d', tr(p.b));
+      const w = (p.w * sc).toFixed(2); ea.setAttribute('stroke-width', w); eb.setAttribute('stroke-width', w);
+      const topY = Math.min(p.a[1], p.a[3], p.a[5]);
+      const shn = this.shines[side];
+      shn.setAttribute('cx', (ecx - p.w * 0.18 * sc).toFixed(2));
+      shn.setAttribute('cy', (ey + (topY * 0.75 - p.w * 0.12) * sc).toFixed(2));
+      shn.setAttribute('opacity', (p.s * 0.85).toFixed(2));
+    }
+    if (this.E.typing) this.typingDots.forEach((dot, i) => { dot.setAttribute('cx', (cx + gap + 26 + i * 10).toFixed(1)); dot.setAttribute('cy', (ey - 18 - i * 4).toFixed(1)); });
+
+    // пиксель Ai на макушке: отстаёт от тела на долю секунды
+    if (o.pixel) {
+      this.px.t = cx + this.sx.x + this.lx.x * 0.4;
+      this.py.t = top + lift - 3 + (o.still || REDUCED ? 0 : Math.sin(t * 2.3 + 1) * 1.5);
+      const vy = this.py.v, st = clamp(1 - vy * 0.004, 0.7, 1.35), sw = 18 / Math.sqrt(st), shh = 18 * st;
+      this.pix.setAttribute('x', (this.px.x - sw / 2).toFixed(2));
+      this.pix.setAttribute('y', (this.py.x - shh).toFixed(2));
+      this.pix.setAttribute('width', sw.toFixed(2)); this.pix.setAttribute('height', shh.toFixed(2));
+      this.pix.setAttribute('transform', `rotate(${clamp(this.px.v * 0.15, -25, 25).toFixed(1)} ${this.px.x.toFixed(1)} ${this.py.x.toFixed(1)})`);
+    }
+  }
+}
+
+/* ---------- Ai, который вылетает за пределы плитки ---------- */
+class Buddy {
+  constructor(stage, aico) {
+    this.stage = stage; this.a = aico;
+    const el = this.el = document.createElement('div'); el.className = 'buddy'; stage.appendChild(el);
+    this.x = new S(0, 110, 11); this.y = new S(0, 110, 11); this.target = null; this.first = true;
+    aico.attn = null;
+    track(this, el);
+    this.visible = true;
+  }
+  anchor() {
+    const sr = this.stage.getBoundingClientRect(), ar = this.a.svg.getBoundingClientRect(), k = ar.width / 200, a = this.a;
+    return { x: ar.left - sr.left + (a.cx.x + a.sx.x + a.lx.x * 0.4) * k, y: ar.top - sr.top + (a.cy.x - a.r[0] + a.lift.x - 3) * k };
+  }
+  update(dt, t) {
+    const p = this.target || this.anchor();
+    if (this.first) { this.x.snap(p.x); this.y.snap(p.y); this.first = false; }
+    this.x.t = p.x; this.y.t = p.y + (this.target || REDUCED ? 0 : Math.sin(t * 2.3 + 1) * 1.5);
+    this.x.step(dt); this.y.step(dt);
+    const size = this.a.svg.getBoundingClientRect().width * 0.1;
+    const st = clamp(1 - this.y.v * 0.0015, 0.7, 1.35);
+    this.el.style.width = this.el.style.height = size.toFixed(1) + 'px';
+    this.el.style.transform = `translate(${(this.x.x - size / 2).toFixed(1)}px, ${(this.y.x - size).toFixed(1)}px) rotate(${clamp(this.x.v * 0.05, -30, 30).toFixed(1)}deg) scale(${(1 / Math.sqrt(st)).toFixed(3)}, ${st.toFixed(3)})`;
+  }
+  center() { const sr = this.stage.getBoundingClientRect(); return { x: sr.left + this.x.x, y: sr.top + this.y.x - 8 }; }
+  flyTo(el, ms = 1800) {
+    const sr = this.stage.getBoundingClientRect(), r = el.getBoundingClientRect();
+    this.target = { x: r.left - sr.left + r.width / 2, y: r.top - sr.top + 2 };
+    this.x.k = this.y.k = 70; this.x.d = this.y.d = 9;
+    this.a.attn = () => this.center();
+    this.a.set('surprised');
+    clearTimeout(this.tm);
+    this.tm = setTimeout(() => this.home(), ms);
+  }
+  home() { this.target = null; this.x.k = this.y.k = 110; this.x.d = this.y.d = 11; this.a.attn = null; }
+  hop() { this.y.v -= 380; }
+  shake() { this.x.v += 260; }
+}
+
+/* ---------- Объёмный AiCo: SDF и трассировка лучей ---------- */
+const FRAG = `
+precision highp float;
+uniform vec2 uRes; uniform float uT;
+uniform vec2 uLook; uniform float uSq, uLift, uTilt, uBlink, uJoy, uEyeS;
+uniform vec3 uBuddy; uniform float uBRot;
+uniform vec3 cBody, cBody2, cEye, cBgA, cBgB, cLime, cRim;
+const float FL = -1.0;
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, s, -s, c); }
+float smin(float a, float b, float k){ float h = clamp(0.5 + 0.5*(b - a)/k, 0.0, 1.0); return mix(b, a, h) - k*h*(1.0 - h); }
+float smax(float a, float b, float k){ return -smin(-a, -b, k); }
+float sdEll(vec3 p, vec3 r){ float k0 = length(p/r); float k1 = length(p/(r*r)); return k0*(k0 - 1.0)/k1; }
+float sdCap(vec3 p, vec3 a, vec3 b, float r){ vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba)/dot(ba, ba), 0.0, 1.0); return length(pa - ba*h) - r; }
+float sdRBox(vec3 p, vec3 b, float r){ vec3 q = abs(p) - b; return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r; }
+float zs(vec2 xy){ vec2 e = vec2(xy.x/1.08, xy.y + 0.12); return sqrt(max(0.0, 1.0 - dot(e, e))); }
+vec3 toBody(vec3 p, out float sc){
+  p.y -= uLift;
+  p.y -= FL; p.xy = rot(uTilt)*p.xy;
+  float sx = inversesqrt(uSq);
+  p.y /= uSq; p.xz /= sx; p.y += FL;
+  sc = min(uSq, sx);
+  p.xz = rot(uLook.x*0.5)*p.xz;
+  p.yz = rot(uLook.y*0.32)*p.yz;
+  return p;
+}
+float eyes(vec3 q){
+  q.x = abs(q.x);
+  vec2 c2 = vec2(0.34 + uLook.x*0.03, 0.06 + uLook.y*0.03);
+  float s = uEyeS;
+  vec3 c = vec3(c2, zs(c2) - 0.03);
+  vec3 a = c + vec3(mix(-0.08, 0.0, uBlink), mix(0.0, -0.1, uBlink), 0.0)*s;
+  vec3 b = c + vec3(mix(0.08, 0.0, uBlink), mix(0.0, 0.1, uBlink), 0.0)*s;
+  float pill = sdCap(q, a, b, mix(0.045, 0.085, uBlink)*s);
+  vec2 p0 = c2 + vec2(-0.11, -0.04), p1 = c2 + vec2(0.0, 0.06), p2 = c2 + vec2(0.11, -0.04);
+  vec3 A = vec3(p0, zs(p0) - 0.01), B = vec3(p1, zs(p1) - 0.01), C = vec3(p2, zs(p2) - 0.01);
+  float chev = min(sdCap(q, A, B, 0.045), sdCap(q, B, C, 0.045));
+  return mix(pill, chev, uJoy);
+}
+vec2 mapObj(vec3 p){
+  float sc; vec3 q = toBody(p, sc);
+  float db = sdEll(q - vec3(0.0, -0.12, 0.0), vec3(1.08, 1.0, 1.0));
+  db = smax(db, FL - q.y, 0.1);
+  vec2 res = vec2(db*sc, 1.0);
+  float de = eyes(q)*sc;
+  if (de < res.x) res = vec2(de, 2.0);
+  vec3 bp = p - uBuddy; bp.xy = rot(uBRot)*bp.xy; bp.xz = rot(uBRot*0.7 + 0.5)*bp.xz;
+  float dk = sdRBox(bp, vec3(0.085), 0.045);
+  if (dk < res.x) res = vec2(dk, 3.0);
+  return res;
+}
+vec2 map(vec3 p){ vec2 r = mapObj(p); float df = p.y - FL; if (df < r.x) r = vec2(df, 0.0); return r; }
+vec3 nor(vec3 p){ const vec2 e = vec2(0.0012, -0.0012); return normalize(e.xyy*map(p + e.xyy).x + e.yyx*map(p + e.yyx).x + e.yxy*map(p + e.yxy).x + e.xxx*map(p + e.xxx).x); }
+float shadow(vec3 ro, vec3 rd){ float res = 1.0, t = 0.03; for (int i = 0; i < 40; i++){ float h = mapObj(ro + rd*t).x; res = min(res, 9.0*h/t); t += clamp(h, 0.02, 0.25); if (res < 0.002 || t > 5.0) break; } return clamp(res, 0.0, 1.0); }
+float ao(vec3 p, vec3 n){ float o = 0.0, s = 1.0; for (int i = 0; i < 5; i++){ float h = 0.02 + 0.14*float(i)/4.0; o += (h - map(p + n*h).x)*s; s *= 0.9; } return clamp(1.0 - 2.2*o, 0.0, 1.0); }
+vec3 bg(vec2 q){ float g = clamp(0.5*(q.x + q.y), 0.0, 1.0); vec3 c = mix(cBgA, cBgB, smoothstep(0.0, 1.0, g)); return c*(1.0 - 0.25*length(q - vec2(0.45, 0.6))); }
+void main(){
+  vec2 q = gl_FragCoord.xy/uRes;
+  vec2 uv = (gl_FragCoord.xy - 0.5*uRes)/uRes.y;
+  vec3 ro = vec3(0.0, 0.45, 6.0), ta = vec3(0.0, 0.1, 0.0);
+  vec3 fw = normalize(ta - ro), rt = normalize(cross(fw, vec3(0.0, 1.0, 0.0))), up = cross(rt, fw);
+  vec3 rd = normalize(uv.x*rt + uv.y*up + 2.0*fw);
+  float t = 3.6; float m = -1.0;
+  for (int i = 0; i < 110; i++){ vec2 h = map(ro + rd*t); if (h.x < 0.0006*t){ m = h.y; break; } t += h.x*0.9; if (t > 16.0) break; }
+  vec3 L = normalize(vec3(-0.55, 0.85, 0.65));
+  vec3 col = bg(q);
+  if (m > -0.5){
+    vec3 p = ro + rd*t;
+    if (m < 0.5){
+      float sh = shadow(p + vec3(0.0, 0.002, 0.0), L);
+      float a = ao(p, vec3(0.0, 1.0, 0.0));
+      col *= mix(vec3(0.42, 0.48, 0.85), vec3(1.0), 0.35 + 0.65*sh);
+      col *= mix(0.62, 1.0, a);
+    } else {
+      vec3 n = nor(p);
+      float ndl = dot(n, L), wrap = clamp((ndl + 0.45)/1.45, 0.0, 1.0);
+      float sh = shadow(p + n*0.01, L), oc = ao(p, n);
+      float fre = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 3.0);
+      vec3 hv = normalize(L - rd);
+      if (m < 1.5){
+        vec3 base = mix(cBody2, cBody, smoothstep(-1.0, 0.4, p.y - uLift));
+        float spe = pow(clamp(dot(n, hv), 0.0, 1.0), 40.0)*sh;
+        col = base*(0.3 + 0.78*wrap*mix(0.6, 1.0, sh))*mix(0.55, 1.0, oc);
+        col += cBgB*0.16*clamp(0.5 - 0.5*n.y, 0.0, 1.0)*oc;
+        col += mix(cRim, cLime, uJoy)*fre*(0.45 + 0.35*uJoy);
+        col += spe*0.45;
+      } else if (m < 2.5){
+        float spe = pow(clamp(dot(n, hv), 0.0, 1.0), 110.0);
+        col = cEye*(0.3 + 0.6*wrap) + spe*1.4 + cRim*fre*0.25;
+      } else {
+        float spe = pow(clamp(dot(n, hv), 0.0, 1.0), 50.0)*sh;
+        col = cLime*(0.35 + 0.8*wrap)*mix(0.6, 1.0, oc) + spe*0.5 + cLime*0.12;
+      }
+    }
+  }
+  col = pow(clamp(col, 0.0, 1.0), vec3(1.0/2.2));
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+class Gummy {
+  constructor(canvas) {
+    this.canvas = canvas;
+    const gl = this.gl = canvas.getContext('webgl', { antialias: false });
+    if (!gl) { this.fail(); return; }
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.error(gl.getShaderInfoLog(s)); return null; } return s; };
+    const vs = sh(gl.VERTEX_SHADER, 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }');
+    const fs = sh(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) { this.fail(); return; }
+    const pr = this.pr = gl.createProgram(); gl.attachShader(pr, vs); gl.attachShader(pr, fs); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { console.error(gl.getProgramInfoLog(pr)); this.fail(); return; }
+    gl.useProgram(pr);
+    const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    this.u = {};
+    for (const n of ['uRes', 'uT', 'uLook', 'uSq', 'uLift', 'uTilt', 'uBlink', 'uJoy', 'uEyeS', 'uBuddy', 'uBRot', 'cBody', 'cBody2', 'cEye', 'cBgA', 'cBgB', 'cLime', 'cRim']) this.u[n] = gl.getUniformLocation(pr, n);
+    const c3 = (n, k, mul = 1) => gl.uniform3fv(this.u[n], lin(k).map(v => v * mul));
+    c3('cBody', 'white', 0.97); c3('cBody2', 'blue-100'); c3('cEye', 'blue-800'); c3('cBgA', 'logo-cyan'); c3('cBgB', 'logo-blue');
+    c3('cLime', 'lime-300'); c3('cRim', 'blue-200');
+    Object.assign(this, {
+      lx: new S(0, 120, 14), ly: new S(0, 120, 14), sq: new S(1, 300, 12), lift: new S(0, 160, 11), tilt: new S(0, 140, 9),
+      blink: new S(1, 900, 45), joy: new S(0, 200, 18), eyeS: new S(1, 300, 14), bx: new S(0, 70, 9), by: new S(1.2, 70, 9),
+      emo: null, nextBlink: 0, holdBlink: null,
+    });
+    canvas.addEventListener('click', () => this.act('jump'));
+    track(this, canvas);
+  }
+  fail() { this.canvas.style.display = 'none'; document.getElementById('c-3d-fallback').style.display = 'block'; }
+  act(name) {
+    this.emo = name; this.holdBlink = null; this.joy.t = 0; this.eyeS.t = 1; this.sq.t = 1;
+    this.blink.t = 0.05; setTimeout(() => { if (this.holdBlink === null) this.blink.t = 1; }, 110);
+    if (REDUCED) return;
+    if (name === 'happy') { setTimeout(() => { this.joy.t = 1; }, 60); this.lift.v += 2.4; this.sq.v += 2; blip('happy'); }
+    if (name === 'surprised') { this.eyeS.t = 1.25; this.sq.v += 4; this.lift.v += 1.5; blip('surprised'); }
+    if (name === 'thinking') { this.tilt.v += 0.9; blip('thinking'); }
+    if (name === 'sleepy') { this.holdBlink = 0.12; this.sq.t = 0.94; blip('sleepy'); }
+    if (name === 'jump') { this.sq.t = 0.8; setTimeout(() => { this.sq.t = 1; this.sq.v += 5; this.lift.v += 4.2; this.joy.t = 1; blip('jump'); setTimeout(() => { if (this.emo === 'jump') this.joy.t = 0; }, 900); }, 150); }
+    if (name === 'neutral') blip('neutral');
+  }
+  update(dt, t) {
+    const gl = this.gl, c = this.canvas, now = t * 1000;
+    const dpr = Math.min(1.5, devicePixelRatio || 1), w = Math.round(c.clientWidth * dpr), h = Math.round(c.clientHeight * dpr);
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    gl.viewport(0, 0, w, h);
+    let tx = 0, ty = 0;
+    if (this.emo === 'thinking') { tx = 0.7; ty = 0.6; }
+    else if (now - pointer.t < 2500) {
+      const rc = c.getBoundingClientRect();
+      tx = clamp((pointer.x - rc.left - rc.width / 2) / rc.width, -1, 1);
+      ty = clamp(-(pointer.y - rc.top - rc.height * 0.55) / rc.height, -1, 1);
+    }
+    this.lx.t = tx; this.ly.t = ty;
+    this.tilt.t = (this.emo === 'thinking' ? 0.08 : 0) - this.lx.x * 0.05;
+    if (this.holdBlink !== null) this.blink.t = this.holdBlink;
+    else if (now > this.nextBlink && !REDUCED) { if (this.nextBlink) { this.blink.t = 0.05; setTimeout(() => { if (this.holdBlink === null) this.blink.t = 1; }, 100); } this.nextBlink = now + 2600 + Math.random() * 2600; }
+    // лёгкая «гравитация» для прыжка
+    this.lift.t = 0;
+    for (const s of [this.lx, this.ly, this.sq, this.lift, this.tilt, this.blink, this.joy, this.eyeS, this.bx, this.by]) s.step(dt);
+    const lift = Math.max(-0.05, this.lift.x) + (REDUCED ? 0 : Math.sin(t * 1.6) * 0.02);
+    const topY = FL_TOP(this.sq.x) + lift;
+    this.bx.t = this.lx.x * 0.35; this.by.t = topY + 0.34 + (REDUCED ? 0 : Math.sin(t * 2.2) * 0.03);
+    const u = this.u;
+    gl.uniform2f(u.uRes, w, h); gl.uniform1f(u.uT, t);
+    gl.uniform2f(u.uLook, this.lx.x, this.ly.x);
+    gl.uniform1f(u.uSq, clamp(this.sq.x, 0.6, 1.5)); gl.uniform1f(u.uLift, lift); gl.uniform1f(u.uTilt, this.tilt.x);
+    gl.uniform1f(u.uBlink, clamp(this.blink.x, 0.02, 1.2)); gl.uniform1f(u.uJoy, clamp(this.joy.x, 0, 1)); gl.uniform1f(u.uEyeS, this.eyeS.x);
+    gl.uniform3f(u.uBuddy, this.bx.x, this.by.x, 0.0); gl.uniform1f(u.uBRot, clamp(this.bx.v * 0.6, -0.6, 0.6) + (REDUCED ? 0 : Math.sin(t * 0.9) * 0.15));
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+}
+const FL_TOP = sq => -1 + 1.88 * sq; // макушка купола с учётом сплющивания
+
+/* ---------- Сборка страницы ---------- */
+function chips(container, items, onClick, pressed) {
+  container.innerHTML = '';
+  const btns = items.map(([key, label, glyphText]) => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button';
+    b.innerHTML = (glyphText ? `<span class="g">${glyphText}</span>` : '') + label;
+    if (pressed !== undefined) b.setAttribute('aria-pressed', String(key === pressed));
+    b.addEventListener('click', () => {
+      if (pressed !== undefined) btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      onClick(key);
+    });
+    container.appendChild(b);
+    return b;
+  });
+  return btns;
+}
+const symOf = k => { const g = EMO[k].g; return (Array.isArray(g) ? g : [g, g]).map(n => G[n].sym).join(' '); };
+
+// Герой: купол, символы, энергия, Ai
+const hero = new Aico(document.getElementById('hero'), { liquid: true, level: 0.35, pixel: true, label: 'AiCo 2.0' });
+const heroEmos = ['neutral', 'happy', 'excited', 'love', 'thinking', 'confused', 'error', 'sad', 'surprised', 'sleepy', 'wink', 'sly'];
+chips(document.getElementById('hero-emo'), heroEmos.map(k => [k, EMO[k].label, symOf(k)]), k => hero.set(k), 'neutral');
+chips(document.getElementById('hero-shape'), ['dome', 'gear', 'gem', 'star', 'heart', 'drop'].map(k => [k, SHAPES[k].label]), k => hero.morph(k), 'dome');
+document.getElementById('hero-plus').addEventListener('click', () => hero.addLevel(0.15));
+document.getElementById('hero-reset').addEventListener('click', () => { hero.level.t = 0.05; hero.set('neutral'); hero.splash(1); });
+
+// Нынешний AiCo для сравнения
+new Aico(document.getElementById('current'), { track: false, label: 'AiCo сейчас' });
+
+// 01 Глаза-символы
+const cg = new Aico(document.getElementById('c-glyph'), { label: 'AiCo: глаза-символы' });
+chips(document.getElementById('c-glyph-emo'), Object.keys(EMO).map(k => [k, EMO[k].label, symOf(k)]), k => cg.set(k), 'neutral');
+const alpha = document.getElementById('c-alpha');
+for (const k of ['neutral', 'happy', 'excited', 'love', 'error', 'thinking', 'sad', 'sleepy', 'surprised', 'wink', 'sly', 'focused']) {
+  const f = document.createElement('figure');
+  f.innerHTML = `<div class="host"></div><figcaption><span class="mono">${symOf(k)}</span> ${EMO[k].label.toLowerCase()}</figcaption>`;
+  alpha.appendChild(f);
+  new Aico(f.firstElementChild, { emotion: k, still: true, idle: false, track: false, label: EMO[k].label });
+}
+
+// 02 Энергия
+const ce = new Aico(document.getElementById('c-energy'), { liquid: true, level: 0.45, label: 'AiCo: энергия' });
+const lvl = document.getElementById('c-energy-lvl');
+lvl.addEventListener('input', () => { ce.level.t = lvl.value / 100; ce.splash(0.3); });
+document.getElementById('c-energy-plus').addEventListener('click', () => { ce.addLevel(0.12); lvl.value = Math.round(ce.level.t * 100); });
+document.getElementById('c-energy-shake').addEventListener('click', () => { ce.set('surprised'); ce.sx.v += 420; ce.tilt.v += 160; ce.splash(1.4); });
+ce.svg.addEventListener('pointermove', e => { const rc = ce.svg.getBoundingClientRect(); ce.tiltBias = ((e.clientX - rc.left) / rc.width - 0.5) * 22; });
+ce.svg.addEventListener('pointerleave', () => { ce.tiltBias = 0; });
+
+// 03 Превращения
+const cm = new Aico(document.getElementById('c-morph'), { shape: 'ball', label: 'AiCo: превращения' });
+const morphEmo = { gear: 'thinking', gem: 'excited', star: 'happy', heart: 'love', drop: 'neutral', ball: 'neutral', dome: 'neutral', pixel: 'focused' };
+chips(document.getElementById('c-morph-shape'), ['ball', 'dome', 'pixel', 'gear', 'gem', 'star', 'heart', 'drop'].map(k => [k, SHAPES[k].label + (SHAPES[k].meaning ? ` · ${SHAPES[k].meaning}` : '')]), k => { cm.morph(k); setTimeout(() => cm.set(morphEmo[k]), 160); }, 'ball');
+
+// 04 Напарник
+const duoStage = document.getElementById('duo-stage');
+const cd = new Aico(document.getElementById('c-duo'), { label: 'AiCo: Co и Ai' });
+const buddy = new Buddy(duoStage, cd);
+const answers = [...document.querySelectorAll('#duo-answers button')];
+document.getElementById('duo-hint').addEventListener('click', () => buddy.flyTo(answers[1]));
+answers.forEach(b => b.addEventListener('click', () => {
+  answers.forEach(x => x.classList.remove('right', 'wrong'));
+  if (b.dataset.a === '3') { b.classList.add('right'); cd.set('excited'); buddy.home(); setTimeout(() => buddy.hop(), 120); }
+  else { b.classList.add('wrong'); cd.set('confused'); buddy.shake(); }
+}));
+document.getElementById('duo-reset').addEventListener('click', () => { answers.forEach(x => x.classList.remove('right', 'wrong')); buddy.home(); cd.set('neutral'); });
+
+// 05 Желе
+new Aico(document.getElementById('c-jelly'), { shape: 'pixel', body: ['lime-200', 'lime-400'], tile: ['blue-800', 'blue-950'], eye: 'blue-900', tint: 'blue-900', jelly: 1, drag: true, label: 'AiCo: желе' });
+
+// 06 Объёмный
+const gummy = new Gummy(document.getElementById('c-3d'));
+if (gummy.gl) chips(document.getElementById('c-3d-emo'), [['neutral', 'Спокоен'], ['happy', 'Рад'], ['surprised', 'Удивлён'], ['thinking', 'Думает'], ['sleepy', 'Засыпает'], ['jump', 'Прыжок']], k => gummy.act(k), 'neutral');
+
+// 07 Программа
+const walker = document.getElementById('walker');
+const cp = new Aico(document.getElementById('c-prog'), { shape: 'ball', tile: null, pixel: true, label: 'AiCo в программе' });
+let pos = 0, program = [], pendingRepeat = 0, running = false;
+const CMDS = {
+  right: { code: 'шаг_вправо()', ms: 520, run: () => { if (pos < 4) { pos++; cp.tilt.v += 80; cp.enter('hop'); blip('step'); } else { cp.set('confused'); } } },
+  left:  { code: 'шаг_влево()', ms: 520, run: () => { if (pos > 0) { pos--; cp.tilt.v -= 80; cp.enter('hop'); blip('step'); } else { cp.set('confused'); } } },
+  jump:  { code: 'прыгни()', ms: 700, run: () => { cp.enter('jump'); blip('jump'); } },
+  blink: { code: 'моргни()', ms: 320, run: () => cp.blink() },
+  happy: { code: 'радуйся()', ms: 700, run: () => cp.set('happy') },
+  star:  { code: 'стань("звездой")', ms: 800, run: () => cp.morph('star') },
+  me:    { code: 'стань("собой")', ms: 800, run: () => cp.morph('ball') },
+};
+const codeEl = document.getElementById('code'), statusEl = document.getElementById('status');
+function lineText(l) { return l.rep > 1 ? `повтори(${l.rep}) { ${CMDS[l.cmd].code} }` : CMDS[l.cmd].code; }
+function renderCode(active = -1) {
+  codeEl.innerHTML = program.length ? '' : '<div class="empty">Программа пустая. Добавь команды ниже.</div>';
+  program.forEach((l, i) => {
+    const d = document.createElement('div'); d.className = 'ln' + (i === active ? ' on' : '');
+    d.innerHTML = `<span>${lineText(l)}</span>`;
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Удалить строку ' + (i + 1));
+    x.addEventListener('click', () => { if (running) return; program.splice(i, 1); renderCode(); });
+    d.appendChild(x); codeEl.appendChild(d);
+  });
+  if (pendingRepeat) { const d = document.createElement('div'); d.className = 'empty'; d.textContent = `повтори(${pendingRepeat}) { … следующая команда }`; codeEl.appendChild(d); }
+}
+const cmdBtns = chips(document.getElementById('cmds'), [...Object.keys(CMDS).map(k => [k, CMDS[k].code]), ['rep', 'повтори(3) { }']], k => {
+  if (running) return;
+  if (k === 'rep') { pendingRepeat = 3; }
+  else { program.push({ cmd: k, rep: pendingRepeat || 1 }); pendingRepeat = 0; }
+  renderCode();
+});
+function place() { walker.style.transform = `translateX(${pos * 100}%)`; }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+document.getElementById('run').addEventListener('click', async () => {
+  if (running) return;
+  running = true; statusEl.textContent = '';
+  pos = 0; place(); cp.set('focused', true); await wait(400);
+  for (let i = 0; i < program.length; i++) {
+    renderCode(i);
+    for (let k = 0; k < program[i].rep; k++) { CMDS[program[i].cmd].run(); place(); await wait(CMDS[program[i].cmd].ms); }
+  }
+  renderCode();
+  if (pos === 4) { cp.set('excited'); statusEl.textContent = 'Готово! AiCo дошёл до звезды.'; }
+  else { cp.set('thinking'); statusEl.textContent = `AiCo на клетке ${pos + 1} из 5. Добавь шаги и запусти ещё раз.`; }
+  running = false;
+});
+document.getElementById('clear').addEventListener('click', () => { if (running) return; program = []; pendingRepeat = 0; pos = 0; place(); cp.morph('ball'); cp.set('neutral'); statusEl.textContent = ''; renderCode(); });
+program = [{ cmd: 'right', rep: 1 }, { cmd: 'right', rep: 2 }, { cmd: 'jump', rep: 1 }];
+renderCode(); place();
+
+// Размеры
+const sizes = document.getElementById('sizes');
+const rows = [
+  ['Сейчас', {}],
+  ['Символы', { emotion: 'happy' }],
+  ['Энергия', { liquid: true, level: 0.5 }],
+  ['С пикселем Ai', { pixel: true }],
+  ['AiCo 2.0', { liquid: true, level: 0.5, pixel: true, emotion: 'happy' }],
+  ['Превращение', { shape: 'star', emotion: 'excited', pixel: true }],
+  ['Желе', { shape: 'pixel', body: ['lime-200', 'lime-400'], tile: ['blue-800', 'blue-950'], eye: 'blue-900', tint: 'blue-900' }],
+];
+const px = [16, 24, 32, 48, 96];
+sizes.innerHTML = `<thead><tr><th>Вариант</th>${px.map(p => `<th>${p} px</th>`).join('')}</tr></thead><tbody></tbody>`;
+for (const [name, opts] of rows) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${name}</td>` + px.map(() => '<td></td>').join('');
+  sizes.tBodies[0].appendChild(tr);
+  px.forEach((p, i) => {
+    const h = document.createElement('div'); h.className = 'mini'; h.style.width = h.style.height = p + 'px';
+    if (opts.pixel) h.style.marginTop = Math.round(p * 0.1) + 'px';
+    tr.children[i + 1].appendChild(h);
+    new Aico(h, Object.assign({ still: true, idle: false, track: false, label: name + ' ' + p + ' px' }, opts));
+  });
+}
+
+// Тема и звук
+const themeBtn = document.getElementById('theme');
+function setTheme(dark) { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; themeBtn.setAttribute('aria-pressed', String(dark)); }
+setTheme(matchMedia('(prefers-color-scheme: dark)').matches);
+themeBtn.addEventListener('click', () => setTheme(document.documentElement.dataset.theme !== 'dark'));
+const soundBtn = document.getElementById('sound');
+soundBtn.addEventListener('click', () => { soundOn = !soundOn; soundBtn.setAttribute('aria-pressed', String(soundOn)); if (soundOn) blip('happy'); });
+</script>
+</body>
+</html>
