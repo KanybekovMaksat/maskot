@@ -196,6 +196,12 @@ section { margin-top: 72px; }
       <button class="btn ghost" id="hero-reset">Обнулить</button>
     </div>
     <div class="chips" id="hero-shape"></div>
+    <div class="row" id="hero-save">
+      <span class="small soft">Скачать:</span>
+      <button class="chip" type="button" data-fmt="svg">SVG</button>
+      <button class="chip" type="button" data-fmt="png">PNG</button>
+      <button class="chip" type="button" data-fmt="jpg">JPG</button>
+    </div>
   </div>
 </div>
 
@@ -1143,6 +1149,65 @@ chips(document.getElementById('hero-emo'), heroEmos.map(k => [k, EMO[k].label, s
 chips(document.getElementById('hero-shape'), ['dome', 'gear', 'gem', 'star', 'heart', 'drop'].map(k => [k, SHAPES[k].label]), k => hero.morph(k), 'dome');
 document.getElementById('hero-plus').addEventListener('click', () => hero.addLevel(0.15));
 document.getElementById('hero-reset').addEventListener('click', () => { hero.level.t = 0.05; hero.set('neutral'); hero.splash(1); });
+
+// Скачать AiCo таким, какой он сейчас: SVG, PNG или JPG
+const SAVE_PX = 1024;
+const toHex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 1;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  return css => {
+    ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = '#000'; ctx.fillStyle = css; ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+  };
+})();
+function aicoSvg(a) {
+  const src = a.svg, svg = src.cloneNode(true);
+  // То, что задаёт CSS страницы, переносим в сам файл
+  const from = [...src.querySelectorAll('*')], to = [...svg.querySelectorAll('*')];
+  from.forEach((el, i) => {
+    const cs = getComputedStyle(el);
+    if (cs.opacity !== '1') to[i].setAttribute('opacity', cs.opacity);
+    if (cs.display === 'none') to[i].setAttribute('display', 'none');
+    to[i].removeAttribute('style');
+    to[i].removeAttribute('class');
+  });
+  to[from.indexOf(a.face)].setAttribute('color', getComputedStyle(a.face).color);
+  // Пиксель Ai может вылететь за плитку: расширяем рамку, чтобы он не обрезался
+  let x0 = 0, y0 = 0, x1 = 200, y1 = 200;
+  if (getComputedStyle(a.pix).display !== 'none') {
+    const b = a.pix.getBBox(), pad = 6;
+    x0 = Math.min(x0, b.x - pad); y0 = Math.min(y0, b.y - pad);
+    x1 = Math.max(x1, b.x + b.width + pad); y1 = Math.max(y1, b.y + b.height + pad);
+  }
+  const s = Math.max(x1 - x0, y1 - y0), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  svg.setAttribute('viewBox', [cx - s / 2, cy - s / 2, s, s].map(v => +v.toFixed(2)).join(' '));
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('width', SAVE_PX); svg.setAttribute('height', SAVE_PX);
+  svg.removeAttribute('class');
+  return new XMLSerializer().serializeToString(svg).replace(/oklch\([^)]*\)/g, toHex);
+}
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+async function saveAico(a, fmt) {
+  const text = aicoSvg(a), name = 'aico-' + a.emo + '.' + fmt;
+  if (fmt === 'svg') return saveBlob(new Blob([text], { type: 'image/svg+xml' }), name);
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(text);
+  await img.decode();
+  const c = document.createElement('canvas'); c.width = c.height = SAVE_PX;
+  const ctx = c.getContext('2d');
+  if (fmt === 'jpg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SAVE_PX, SAVE_PX); }
+  ctx.drawImage(img, 0, 0, SAVE_PX, SAVE_PX);
+  c.toBlob(b => saveBlob(b, name), fmt === 'jpg' ? 'image/jpeg' : 'image/png', 0.95);
+}
+document.getElementById('hero-save').addEventListener('click', e => {
+  const fmt = e.target.closest('[data-fmt]')?.dataset.fmt;
+  if (fmt) saveAico(hero, fmt);
+});
 
 // Нынешний AiCo для сравнения
 new Aico(document.getElementById('current'), { track: false, label: 'AiCo сейчас' });

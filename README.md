@@ -5,3 +5,5 @@
 Открыть: https://kanybekovmaksat.github.io/maskot/
 
 Страница одна: `index.html`, без сборки. Её исходник лежит в `codify_diagnostic/src/mascot/aico-2.html`.
+
+Под большим AiCo есть кнопки «Скачать: SVG, PNG, JPG». Файл сохраняет AiCo таким, какой он сейчас на экране: эмоция, форма, энергия. PNG и JPG размером 1024×1024, у PNG прозрачные углы, у JPG белые.
